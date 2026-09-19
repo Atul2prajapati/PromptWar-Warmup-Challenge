@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Sahayak — Your simple, friendly AI assistant for everyday help. Designed for seniors.">
+    <meta name="theme-color" content="#FF6B35">
+    <title>Sahayak — सहायक</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: Language Selection                  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="language-screen" class="screen active" aria-label="Language selection">
+        <div class="screen-content language-content">
+            <div class="language-icon-wrapper">
+                <span class="language-icon">🙏</span>
+            </div>
+            <h1 class="language-title" id="lang-title">आप किस भाषा में बात करना चाहेंगे?</h1>
+            <p class="language-subtitle">Which language would you like to use?</p>
+            <div class="language-options">
+                <button class="lang-btn" data-lang="hi" id="btn-lang-hi">
+                    <span class="lang-flag">🇮🇳</span>
+                    <span class="lang-name">हिंदी</span>
+                </button>
+                <button class="lang-btn" data-lang="en" id="btn-lang-en">
+                    <span class="lang-flag">🇬🇧</span>
+                    <span class="lang-name">English</span>
+                </button>
+                <button class="lang-btn" data-lang="hinglish" id="btn-lang-hinglish">
+                    <span class="lang-flag">🗣️</span>
+                    <span class="lang-name">Hinglish</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: Home                                -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="home-screen" class="screen" aria-label="Home">
+        <div class="screen-content home-content">
+            <header class="home-header">
+                <p class="greeting-text" id="greeting-text">Good Morning</p>
+                <h1 class="greeting-name" id="greeting-name">Ajay</h1>
+                <p class="greeting-subtitle" id="greeting-subtitle">How can I help you today?</p>
+            </header>
+
+            <div class="action-cards">
+                <!-- PRIMARY: Explain This (Camera) -->
+                <button class="action-card action-primary" id="btn-camera" aria-label="Take a photo to explain something">
+                    <div class="action-icon-wrap">
+                        <span class="action-icon">📷</span>
+                    </div>
+                    <div class="action-text">
+                        <span class="action-title" data-i18n="camera_title">EXPLAIN THIS</span>
+                        <span class="action-desc" data-i18n="camera_desc">Take a photo</span>
+                    </div>
+                    <span class="action-arrow">→</span>
+                </button>
+
+                <!-- TWO-COLUMN ROW -->
+                <div class="action-row">
+                    <!-- Talk to Me -->
+                    <button class="action-card action-secondary" id="btn-talk" aria-label="Talk to the assistant">
+                        <span class="action-icon">🎙️</span>
+                        <span class="action-title" data-i18n="talk_title">TALK TO ME</span>
+                        <span class="action-desc" data-i18n="talk_desc">Tell me what you need</span>
+                    </button>
+
+                    <!-- My Day -->
+                    <button class="action-card action-secondary" id="btn-today" aria-label="View today's schedule">
+                        <span class="action-icon">🗓️</span>
+                        <span class="action-title" data-i18n="today_title">MY DAY</span>
+                        <span class="action-desc" data-i18n="today_desc">What do I need to do?</span>
+                    </button>
+                </div>
+
+                <!-- Family / Help -->
+                <button class="action-card action-alert" id="btn-family-home" aria-label="Ask family for help">
+                    <div class="alert-indicator">
+                        <span class="alert-dot"></span>
+                    </div>
+                    <div class="action-text">
+                        <span class="action-title" data-i18n="help_title">Something looks wrong?</span>
+                        <span class="action-desc action-desc-bold" data-i18n="help_desc">ASK FAMILY</span>
+                    </div>
+                </button>
+            </div>
+
+            <footer class="home-footer">
+                <button class="settings-btn" id="btn-settings" aria-label="Change language">
+                    <span>🌐</span> <span data-i18n="change_lang">Change Language</span>
+                </button>
+            </footer>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: Camera                              -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="camera-screen" class="screen" aria-label="Camera">
+        <div class="screen-content camera-content">
+            <button class="back-btn" data-back="home-screen" aria-label="Go back">
+                <span>←</span>
+            </button>
+
+            <div class="camera-viewport">
+                <video id="camera-video" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display:none;"></canvas>
+                <div class="camera-overlay">
+                    <div class="camera-frame"></div>
+                    <p class="camera-hint" data-i18n="camera_hint">Point at what you want to understand</p>
+                </div>
+            </div>
+
+            <div class="camera-controls">
+                <button class="capture-btn" id="btn-capture" aria-label="Take photo">
+                    <div class="capture-ring">
+                        <div class="capture-dot"></div>
+                    </div>
+                </button>
+                <p class="capture-label" data-i18n="capture_label">Tap to take photo</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: Talk to Me (Voice)                  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="talk-screen" class="screen" aria-label="Talk to the assistant">
+        <div class="screen-content talk-content">
+            <button class="back-btn" data-back="home-screen" aria-label="Go back">
+                <span>←</span>
+            </button>
+
+            <div class="talk-area">
+                <div class="mic-animation" id="mic-animation">
+                    <div class="mic-ring mic-ring-1"></div>
+                    <div class="mic-ring mic-ring-2"></div>
+                    <div class="mic-ring mic-ring-3"></div>
+                    <button class="mic-btn" id="btn-mic" aria-label="Start listening">
+                        <span>🎙️</span>
+                    </button>
+                </div>
+                <p class="talk-status" id="talk-status" data-i18n="talk_tap">Tap to start talking</p>
+                <div class="talk-transcript" id="talk-transcript" aria-live="polite"></div>
+            </div>
+
+            <div class="talk-actions" id="talk-actions" style="display:none;">
+                <button class="btn-pill btn-primary" id="btn-send-voice" data-i18n="send">Send</button>
+                <button class="btn-pill btn-ghost" id="btn-retry-voice" data-i18n="try_again">Try Again</button>
+            </div>
+
+            <div class="talk-type-area">
+                <p class="type-hint" data-i18n="type_hint">Or type here:</p>
+                <div class="type-input-wrap">
+                    <input type="text" id="text-input" class="type-input" placeholder="Type your message..." data-i18n-placeholder="type_placeholder" aria-label="Type your message">
+                    <button class="type-send-btn" id="btn-send-text" aria-label="Send message">→</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: My Day (Today Card)                 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="today-screen" class="screen" aria-label="Today's schedule">
+        <div class="screen-content today-content">
+            <button class="back-btn" data-back="home-screen" aria-label="Go back">
+                <span>←</span>
+            </button>
+
+            <h1 class="today-heading">
+                <span class="today-dot"></span>
+                <span data-i18n="today_heading">TODAY</span>
+            </h1>
+
+            <div class="timeline" id="timeline-today" aria-label="Today's events">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="tomorrow-section" id="tomorrow-section">
+                <h2 class="tomorrow-heading" data-i18n="tomorrow_heading">TOMORROW</h2>
+                <div class="timeline" id="timeline-tomorrow" aria-label="Tomorrow's events">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: Family Help                         -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="family-screen" class="screen" aria-label="Family help">
+        <div class="screen-content family-content">
+            <button class="back-btn" data-back="home-screen" aria-label="Go back">
+                <span>←</span>
+            </button>
+
+            <div class="family-header">
+                <span class="family-icon">👨‍👩‍👧</span>
+                <h1 data-i18n="family_heading">Ask Family for Help</h1>
+                <p data-i18n="family_subtitle">Who would you like to contact?</p>
+            </div>
+
+            <div class="family-contacts" id="family-contacts">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="family-context-card" id="family-context" style="display:none;">
+                <p class="context-label" data-i18n="family_context_label">What do you need help with?</p>
+                <div class="context-options">
+                    <button class="context-btn" data-context="cant-understand" id="btn-ctx-understand">
+                        <span>🤔</span>
+                        <span data-i18n="ctx_understand">I can't understand something</span>
+                    </button>
+                    <button class="context-btn" data-context="not-sure-safe" id="btn-ctx-safe">
+                        <span>⚠️</span>
+                        <span data-i18n="ctx_safe">Something doesn't look safe</span>
+                    </button>
+                    <button class="context-btn" data-context="need-help" id="btn-ctx-help">
+                        <span>🙋</span>
+                        <span data-i18n="ctx_help">I just need help</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: Result / AI Response                -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="result-screen" class="screen" aria-label="Result">
+        <div class="screen-content result-content">
+            <button class="back-btn" data-back="home-screen" aria-label="Go back">
+                <span>←</span>
+            </button>
+
+            <!-- Safety Indicator -->
+            <div class="safety-badge" id="safety-badge" aria-live="polite">
+                <span class="safety-dot" id="safety-dot"></span>
+                <span class="safety-text" id="safety-text"></span>
+            </div>
+
+            <!-- Response Card -->
+            <div class="result-card" id="result-card">
+                <div class="result-header" id="result-header">
+                    <!-- Icon + title -->
+                </div>
+                <div class="result-body" id="result-body" aria-live="polite">
+                    <!-- AI response content -->
+                </div>
+            </div>
+
+            <!-- Read Aloud -->
+            <button class="listen-btn" id="btn-listen" aria-label="Listen to this">
+                <span class="listen-icon">🔊</span>
+                <span class="listen-text" data-i18n="listen">Listen</span>
+            </button>
+
+            <!-- Action Buttons -->
+            <div class="result-actions" id="result-actions">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Family Escalation -->
+            <div class="family-escalation" id="family-escalation">
+                <p data-i18n="not_sure">Not sure about this?</p>
+                <button class="btn-pill btn-family-escalate" id="btn-ask-family" data-i18n="ask_family_btn">Ask Family</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCREEN: Conversational (One question)       -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="conversation-screen" class="screen" aria-label="Conversation">
+        <div class="screen-content conversation-content">
+            <button class="back-btn" data-back="home-screen" aria-label="Go back">
+                <span>←</span>
+            </button>
+
+            <div class="conversation-area">
+                <div class="conversation-bubble" id="conv-bubble" aria-live="polite">
+                    <p class="conv-question" id="conv-question"></p>
+                </div>
+
+                <div class="conv-input-area" id="conv-input-area">
+                    <!-- Dynamic: text input, date picker, or option buttons -->
+                </div>
+            </div>
+
+            <div class="conv-progress" id="conv-progress">
+                <!-- Step indicators -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODAL: Confirmation                         -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="confirmation-modal" role="dialog" aria-modal="true" aria-label="Confirmation">
+        <div class="modal-card">
+            <div class="modal-icon" id="modal-icon">✅</div>
+            <h2 class="modal-title" id="modal-title" data-i18n="confirm_title">Did I understand correctly?</h2>
+            <div class="modal-body" id="modal-body">
+                <!-- Confirmation details -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-pill btn-confirm" id="btn-confirm-yes" data-i18n="yes">YES</button>
+                <button class="btn-pill btn-change" id="btn-confirm-change" data-i18n="change">CHANGE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODAL: Scam Alert                           -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="scam-modal" role="dialog" aria-modal="true" aria-label="Safety warning">
+        <div class="modal-card scam-card">
+            <div class="scam-indicator">
+                <span class="scam-icon">🔴</span>
+                <h2 class="scam-title" data-i18n="scam_stop">STOP — Please check this</h2>
+            </div>
+            <div class="scam-body" id="scam-body">
+                <!-- Scam details -->
+            </div>
+            <div class="scam-actions">
+                <button class="btn-pill btn-family-escalate" id="btn-scam-family" data-i18n="call_family">Call Family</button>
+                <button class="btn-pill btn-ghost" id="btn-scam-check" data-i18n="check_message">Check Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Toast Notification                          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="toast" id="toast" role="status" aria-live="polite">
+        <span class="toast-icon" id="toast-icon"></span>
+        <span class="toast-text" id="toast-text"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
