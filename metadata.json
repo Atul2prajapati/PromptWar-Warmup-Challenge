@@ -1,0 +1,11 @@
+{
+  "name": "Sahayak — सहायक",
+  "description": "Sahayak — Your simple, friendly AI assistant for everyday help. Designed for seniors.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

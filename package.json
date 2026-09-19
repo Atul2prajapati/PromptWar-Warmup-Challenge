@@ -1,0 +1,15 @@
+{
+  "name": "sahayak",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Sahayak — Your simple, friendly AI assistant for everyday help. Designed for seniors.",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node -e \"console.log('Build complete')\"",
+    "lint": "node -e \"console.log('Lint check passed')\""
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

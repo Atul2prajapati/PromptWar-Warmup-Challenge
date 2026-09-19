@@ -8,7 +8,8 @@
     /* ─── STATE ──────────────────────────────────── */
     const state = {
         language: localStorage.getItem('sahayak-lang') || null,
-        userName: 'Ajay',
+        userName: localStorage.getItem('sahayak-user-name') || 'Ajay',
+        userEmail: localStorage.getItem('sahayak-user-email') || null,
         currentScreen: 'language-screen',
         cameraStream: null,
         isListening: false,
@@ -282,11 +283,193 @@
     }
 
 
+    /* ─── USER PROFILE & NAME RESOLUTION ────────── */
+    function extractNameFromEmail(email) {
+        if (!email || typeof email !== 'string') return null;
+        const clean = email.replace(/^accounts\.google\.com:/, '').trim().toLowerCase();
+        const handle = clean.split('@')[0];
+        if (!handle) return null;
+
+        // If email has separators like atul.prajapati or atul_prajapati or atul-prajapati
+        if (/[._\-]/.test(handle)) {
+            const parts = handle.split(/[._\-]+/).filter(p => p && !/^\d+$/.test(p));
+            if (parts.length > 0) {
+                return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+            }
+        }
+
+        // Remove trailing numbers (e.g. prajapatiatul2 -> prajapatiatul)
+        const text = handle.replace(/\d+$/, '');
+
+        // If it includes 'atul' or common names
+        if (text.includes('atul')) {
+            return 'Atul';
+        }
+
+        // Default capitalize
+        if (text.length > 0) {
+            return text.charAt(0).toUpperCase() + text.slice(1);
+        }
+
+        return handle.charAt(0).toUpperCase() + handle.slice(1);
+    }
+
+    function updateUserUI() {
+        const nameEl = $('#greeting-name');
+        if (nameEl) {
+            nameEl.textContent = state.userName || 'Friend';
+        }
+        const badgeEl = $('#user-account-badge');
+        const badgeEmailEl = $('#user-badge-email');
+        if (badgeEl && badgeEmailEl) {
+            if (state.userEmail) {
+                badgeEmailEl.textContent = state.userEmail;
+                badgeEl.style.display = 'inline-flex';
+            } else {
+                badgeEl.style.display = 'none';
+            }
+        }
+        const profileBtnLabel = $('#profile-btn-label');
+        if (profileBtnLabel) {
+            profileBtnLabel.textContent = state.userName || 'Change Name';
+        }
+    }
+
+    async function initUserProfile() {
+        let detectedName = null;
+        let detectedEmail = null;
+
+        // 1. Check URL query parameters (?name=..., ?email=..., ?user=...)
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramEmail = urlParams.get('email') || urlParams.get('user_email') || urlParams.get('mail');
+            const paramName = urlParams.get('name') || urlParams.get('user') || urlParams.get('userName') || urlParams.get('username');
+
+            if (paramName) detectedName = decodeURIComponent(paramName).trim();
+            if (paramEmail) detectedEmail = decodeURIComponent(paramEmail).trim();
+        } catch (e) {
+            console.warn('URL params parse error:', e);
+        }
+
+        // 2. Check URL hash (#name=... or #email=...)
+        try {
+            if (!detectedName && !detectedEmail && window.location.hash) {
+                const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+                const hEmail = hashParams.get('email');
+                const hName = hashParams.get('name') || hashParams.get('user');
+                if (hName) detectedName = decodeURIComponent(hName).trim();
+                if (hEmail) detectedEmail = decodeURIComponent(hEmail).trim();
+            }
+        } catch (e) {}
+
+        // 3. Check parent window if inside an iframe
+        try {
+            if (!detectedName && !detectedEmail && window.parent && window.parent !== window) {
+                const parentParams = new URLSearchParams(window.parent.location.search);
+                const pEmail = parentParams.get('email');
+                const pName = parentParams.get('name') || parentParams.get('user');
+                if (pName) detectedName = decodeURIComponent(pName).trim();
+                if (pEmail) detectedEmail = decodeURIComponent(pEmail).trim();
+            }
+        } catch (e) {
+            // Cross-origin restriction is normal
+        }
+
+        // 4. Derive name from email if needed
+        if (detectedEmail && !detectedName) {
+            detectedName = extractNameFromEmail(detectedEmail);
+        }
+
+        // If URL provided name or email, save to state & localStorage
+        if (detectedName) {
+            state.userName = detectedName;
+            localStorage.setItem('sahayak-user-name', detectedName);
+        }
+        if (detectedEmail) {
+            state.userEmail = detectedEmail;
+            localStorage.setItem('sahayak-user-email', detectedEmail);
+        }
+
+        // 5. If not detected in URL, check localStorage
+        if (!detectedName) {
+            const storedName = localStorage.getItem('sahayak-user-name');
+            const storedEmail = localStorage.getItem('sahayak-user-email');
+            if (storedName) state.userName = storedName;
+            if (storedEmail) state.userEmail = storedEmail;
+        }
+
+        // 6. Check server endpoint /api/user-info (Cloud Run / proxy headers)
+        try {
+            const res = await fetch('/api/user-info');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.email && !state.userEmail) {
+                    state.userEmail = data.email;
+                    localStorage.setItem('sahayak-user-email', data.email);
+                    if (state.userName === 'Ajay') {
+                        const fromEmail = data.name || extractNameFromEmail(data.email);
+                        if (fromEmail) {
+                            state.userName = fromEmail;
+                            localStorage.setItem('sahayak-user-name', fromEmail);
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
+
+        updateUserUI();
+    }
+
+    // Google Identity Services Credential Handler
+    window.handleGoogleCredentialResponse = function (response) {
+        try {
+            if (response && response.credential) {
+                const base64Url = response.credential.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                const payload = JSON.parse(jsonPayload);
+
+                const name = payload.given_name || payload.name || extractNameFromEmail(payload.email);
+                if (name) {
+                    state.userName = name;
+                    localStorage.setItem('sahayak-user-name', name);
+                }
+                if (payload.email) {
+                    state.userEmail = payload.email;
+                    localStorage.setItem('sahayak-user-email', payload.email);
+                }
+                updateUserUI();
+                showToast('👋', `Welcome, ${state.userName}!`);
+                hideNameModal();
+            }
+        } catch (err) {
+            console.warn('Google Sign-In response parse failed:', err);
+        }
+    };
+
+    function showNameModal() {
+        const modal = $('#name-modal');
+        if (!modal) return;
+        const nameInput = $('#name-input-field');
+        const emailInput = $('#email-input-field');
+        if (nameInput) nameInput.value = state.userName || '';
+        if (emailInput) emailInput.value = state.userEmail || '';
+        modal.classList.add('active');
+        if (nameInput) nameInput.focus();
+    }
+
+    function hideNameModal() {
+        const modal = $('#name-modal');
+        if (modal) modal.classList.remove('active');
+    }
+
     /* ─── HOME SCREEN ────────────────────────────── */
     function setupHomeScreen() {
         $('#greeting-text').textContent = getGreeting();
-        $('#greeting-name').textContent = state.userName;
         $('#greeting-subtitle').textContent = t('greeting_subtitle');
+        updateUserUI();
     }
 
 
@@ -978,6 +1161,76 @@
         $('#btn-scam-check').addEventListener('click', () => {
             $('#scam-modal').classList.remove('active');
         });
+
+        // Profile / Edit Name modal
+        const editBtn = $('#btn-edit-name');
+        if (editBtn) editBtn.addEventListener('click', showNameModal);
+
+        const greetingNameEl = $('#greeting-name');
+        if (greetingNameEl) greetingNameEl.addEventListener('click', showNameModal);
+
+        const profileBtn = $('#btn-profile');
+        if (profileBtn) profileBtn.addEventListener('click', showNameModal);
+
+        const cancelNameBtn = $('#btn-cancel-name');
+        if (cancelNameBtn) cancelNameBtn.addEventListener('click', hideNameModal);
+
+        const nameModal = $('#name-modal');
+        if (nameModal) {
+            nameModal.addEventListener('click', (e) => {
+                if (e.target === nameModal) hideNameModal();
+            });
+        }
+
+        const saveNameBtn = $('#btn-save-name');
+        if (saveNameBtn) {
+            saveNameBtn.addEventListener('click', () => {
+                const nameInput = $('#name-input-field');
+                const emailInput = $('#email-input-field');
+                const newName = nameInput ? nameInput.value.trim() : '';
+                const newEmail = emailInput ? emailInput.value.trim() : '';
+
+                if (newName) {
+                    state.userName = newName;
+                    localStorage.setItem('sahayak-user-name', newName);
+                } else if (newEmail) {
+                    const derived = extractNameFromEmail(newEmail);
+                    if (derived) {
+                        state.userName = derived;
+                        localStorage.setItem('sahayak-user-name', derived);
+                    }
+                }
+
+                if (newEmail) {
+                    state.userEmail = newEmail;
+                    localStorage.setItem('sahayak-user-email', newEmail);
+                }
+
+                updateUserUI();
+                hideNameModal();
+                showToast('✅', `Updated name to ${state.userName}!`);
+            });
+        }
+
+        const nameInputField = $('#name-input-field');
+        if (nameInputField) {
+            nameInputField.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const saveBtn = $('#btn-save-name');
+                    if (saveBtn) saveBtn.click();
+                }
+            });
+        }
+
+        const emailInputField = $('#email-input-field');
+        if (emailInputField) {
+            emailInputField.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const saveBtn = $('#btn-save-name');
+                    if (saveBtn) saveBtn.click();
+                }
+            });
+        }
     }
 
 
@@ -986,6 +1239,7 @@
         bindEvents();
         initLanguageScreen();
         initSpeechRecognition();
+        initUserProfile();
     }
 
     // Wait for DOM

@@ -285,6 +285,16 @@ input {
     font-weight: 500;
 }
 
+.greeting-name-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    position: relative;
+    max-width: 90%;
+    margin: 0 auto;
+}
+
 .greeting-name {
     font-size: var(--fs-3xl);
     font-weight: 800;
@@ -293,6 +303,94 @@ input {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     line-height: 1.2;
+    cursor: pointer;
+    word-break: break-word;
+}
+
+.edit-name-btn {
+    background: var(--card);
+    border: 1.5px solid #E5E7EB;
+    border-radius: var(--radius-full);
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    box-shadow: var(--card-shadow);
+    transition: transform var(--duration) var(--ease-bounce), color var(--duration), border-color var(--duration);
+}
+
+.edit-name-btn:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.user-account-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 3px 12px;
+    background: #FFF5EE;
+    border: 1px solid #FFE4D6;
+    border-radius: var(--radius-full);
+    font-size: var(--fs-sm);
+    color: var(--primary-dark);
+    font-weight: 500;
+}
+
+.user-badge-icon {
+    font-size: 13px;
+}
+
+.user-badge-email {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.name-modal-sub {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: -8px 0 16px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.name-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.name-input-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.name-modal-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 2px solid #E5E7EB;
+    background: var(--card);
+    color: var(--text);
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color var(--duration);
+    box-sizing: border-box;
+}
+
+.name-modal-input:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 .greeting-subtitle {
